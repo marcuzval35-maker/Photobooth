@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEON SNAP — AI Photobooth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="booth-shell">
+    <header class="booth-header">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <h1>NEON SNAP <span class="brand-tag">AI BOOTH</span></h1>
+      </div>
+
+      <div class="mode-toggle" role="group" aria-label="Capture Mode">
+        <button type="button" class="mode-btn active" data-mode="single" aria-pressed="true">
+          Single Photo
+        </button>
+        <button type="button" class="mode-btn" data-mode="strip" aria-pressed="false">
+          3-Shot Strip
+        </button>
+      </div>
+    </header>
+
+    <main class="booth-grid">
+      <!-- Primary Stage: Live Camera & Generated Result -->
+      <section class="stage-column">
+        <div class="viewport-frame">
+          <!-- Live Mirrored Webcam -->
+          <video id="webcam" autoplay playsinline muted></video>
+
+          <!-- Result Image Display -->
+          <div id="result-view" class="result-view hidden">
+            <img id="result-image" alt="AI Photobooth Result" />
+            <span id="result-badge" class="result-badge">AI Styled</span>
+          </div>
+
+          <!-- Camera Error / Permission Fallback -->
+          <div id="camera-error" class="overlay-panel hidden">
+            <p id="camera-error-msg">Camera access is required to use the photobooth.</p>
+            <button type="button" id="retry-camera-btn" class="btn btn-secondary">
+              Enable Camera
+            </button>
+          </div>
+
+          <!-- 3-2-1 Countdown Overlay -->
+          <div id="countdown-overlay" class="countdown-overlay hidden" aria-live="assertive">
+            <div id="strip-progress" class="strip-progress hidden">SHOT 1 OF 3</div>
+            <div id="countdown-number" class="countdown-number">3</div>
+          </div>
+
+          <!-- Loading Spinner Overlay -->
+          <div id="loading-overlay" class="overlay-panel hidden" aria-live="polite">
+            <div class="neon-spinner" aria-hidden="true"></div>
+            <p id="loading-text" class="loading-text">Developing with Gemini AI...</p>
+            <p class="loading-subtext">Preserving your pose &amp; applying style</p>
+          </div>
+
+          <!-- Full-Viewport White Flash -->
+          <div id="flash-overlay" class="flash-overlay" aria-hidden="true"></div>
+        </div>
+
+        <!-- Inline Error Banner -->
+        <div id="error-banner" class="error-banner hidden" role="alert">
+          <span id="error-banner-text"></span>
+          <button type="button" id="dismiss-error-btn" aria-label="Dismiss error">&times;</button>
+        </div>
+
+        <!-- Primary Controls -->
+        <div class="action-bar">
+          <div id="camera-controls" class="control-group">
+            <button type="button" id="capture-btn" class="btn btn-primary btn-shutter">
+              <span class="shutter-ring" aria-hidden="true"></span>
+              <span id="capture-btn-label">Snap Single Photo</span>
+            </button>
+          </div>
+
+          <div id="result-controls" class="control-group hidden">
+            <button type="button" id="download-btn" class="btn btn-primary">
+              Download Image
+            </button>
+            <button type="button" id="compare-btn" class="btn btn-secondary">
+              View Original
+            </button>
+            <button type="button" id="retake-btn" class="btn btn-ghost">
+              Retake
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sidebar: Style Presets & QR Sharing -->
+      <aside class="sidebar-column">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>AI Style Presets</h2>
+            <span id="style-hint" class="panel-hint">Pick before or after capture</span>
+          </div>
+
+          <div id="style-grid" class="style-grid" role="radiogroup" aria-label="AI Style Presets">
+            <button type="button" class="style-card active" data-style="vintage-90s" role="radio" aria-checked="true">
+              <span class="style-swatch swatch-vintage" aria-hidden="true"></span>
+              <span class="style-meta">
+                <strong>90s Vintage Film</strong>
+                <small>Grainy analog flash, warm retro tones</small>
+              </span>
+            </button>
+
+            <button type="button" class="style-card" data-style="cyberpunk-neon" role="radio" aria-checked="false">
+              <span class="style-swatch swatch-cyberpunk" aria-hidden="true"></span>
+              <span class="style-meta">
+                <strong>Cyberpunk Neon</strong>
+                <small>Futuristic night city, pink &amp; cyan glow</small>
+              </span>
+            </button>
+
+            <button type="button" class="style-card" data-style="vinyl-toy" role="radio" aria-checked="false">
+              <span class="style-swatch swatch-vinyl" aria-hidden="true"></span>
+              <span class="style-meta">
+                <strong>3D Vinyl Toy</strong>
+                <small>Stylized collectible figurine, studio light</small>
+              </span>
+            </button>
+
+            <button type="button" class="style-card" data-style="claymation" role="radio" aria-checked="false">
+              <span class="style-swatch swatch-clay" aria-hidden="true"></span>
+              <span class="style-meta">
+                <strong>Claymation</strong>
+                <small>Handcrafted stop-motion clay texture</small>
+              </span>
+            </button>
+
+            <button type="button" class="style-card" data-style="bw-booth" role="radio" aria-checked="false">
+              <span class="style-swatch swatch-bw" aria-hidden="true"></span>
+              <span class="style-meta">
+                <strong>Classic B&amp;W Booth</strong>
+                <small>High-contrast silver gelatin monochrome</small>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- QR Sharing Panel -->
+        <div id="qr-panel" class="panel qr-panel hidden">
+          <div class="panel-header">
+            <h2>Scan to Save</h2>
+            <span class="panel-hint">Expires in 30 min</span>
+          </div>
+          <div class="qr-body">
+            <div id="qr-container" class="qr-box" aria-label="QR code to download photo"></div>
+            <div class="qr-info">
+              <p>Scan with your phone camera to view and download this session.</p>
+              <button type="button" id="copy-link-btn" class="btn btn-secondary btn-sm">
+                Copy Share Link
+              </button>
+              <p id="localhost-warning" class="localhost-warning hidden">
+                Running on <code>localhost</code>: phones cannot reach this URL unless you set
+                <code>PUBLIC_BASE_URL</code> to a reachable HTTPS/LAN address.
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Hidden HTML5 Canvas for Single Frame Capture & 3-Shot Strip Stitching -->
+  <canvas id="capture-canvas" hidden></canvas>
+
+  <!-- Lightweight Client-Side QR Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
